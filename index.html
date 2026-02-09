@@ -1,0 +1,477 @@
+ (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
+diff --git a/index.html b/index.html
+new file mode 100644
+index 0000000000000000000000000000000000000000..cd8f0cde705e03dd93f0b7d661cf6c63720680e7
+--- /dev/null
++++ b/index.html
+@@ -0,0 +1,467 @@
++<!DOCTYPE html>
++<html lang="ko">
++<head>
++  <meta charset="UTF-8" />
++  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
++  <title>기부 리포트 대시보드</title>
++  <style>
++    :root {
++      color-scheme: light;
++      font-family: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
++      background-color: #f5f6f8;
++      color: #1b1e24;
++    }
++
++    * {
++      box-sizing: border-box;
++    }
++
++    body {
++      margin: 0;
++      padding: 32px 16px 48px;
++      background: #f5f6f8;
++    }
++
++    .container {
++      max-width: 1100px;
++      margin: 0 auto;
++      display: flex;
++      flex-direction: column;
++      gap: 24px;
++    }
++
++    header {
++      display: flex;
++      flex-direction: column;
++      gap: 8px;
++    }
++
++    header h1 {
++      margin: 0;
++      font-size: 28px;
++    }
++
++    header p {
++      margin: 0;
++      color: #5d6470;
++    }
++
++    .grid {
++      display: grid;
++      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
++      gap: 20px;
++    }
++
++    .card {
++      background: #ffffff;
++      border-radius: 16px;
++      padding: 20px;
++      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
++    }
++
++    .card h2 {
++      margin: 0 0 12px;
++      font-size: 18px;
++    }
++
++    form {
++      display: grid;
++      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
++      gap: 12px;
++      align-items: end;
++    }
++
++    label {
++      font-size: 12px;
++      color: #5d6470;
++      display: flex;
++      flex-direction: column;
++      gap: 6px;
++    }
++
++    input,
++    select,
++    button {
++      font: inherit;
++      padding: 10px 12px;
++      border-radius: 10px;
++      border: 1px solid #d5dae2;
++    }
++
++    input:focus,
++    select:focus {
++      outline: 2px solid #8bb5ff;
++      border-color: transparent;
++    }
++
++    button {
++      background: #2b6dff;
++      color: #ffffff;
++      border: none;
++      cursor: pointer;
++      font-weight: 600;
++    }
++
++    button:hover {
++      background: #1f5be0;
++    }
++
++    .helper {
++      font-size: 12px;
++      color: #d14343;
++      min-height: 16px;
++    }
++
++    .summary {
++      display: flex;
++      flex-direction: column;
++      gap: 8px;
++    }
++
++    .summary strong {
++      font-size: 22px;
++    }
++
++    table {
++      width: 100%;
++      border-collapse: collapse;
++      font-size: 14px;
++    }
++
++    th,
++    td {
++      text-align: left;
++      padding: 10px 8px;
++      border-bottom: 1px solid #edf0f4;
++    }
++
++    th {
++      background: #f8f9fb;
++      color: #5d6470;
++      font-weight: 600;
++      font-size: 12px;
++      text-transform: uppercase;
++      letter-spacing: 0.02em;
++    }
++
++    .badge {
++      display: inline-block;
++      padding: 4px 10px;
++      border-radius: 999px;
++      background: #eef2ff;
++      color: #3c56d2;
++      font-size: 12px;
++    }
++
++    .list {
++      display: flex;
++      flex-direction: column;
++      gap: 10px;
++    }
++
++    .list-item {
++      display: flex;
++      justify-content: space-between;
++      align-items: center;
++      padding: 10px 12px;
++      border-radius: 12px;
++      background: #f8f9fb;
++    }
++
++    .list-item small {
++      color: #5d6470;
++    }
++
++    .empty {
++      color: #7b8494;
++      font-size: 14px;
++    }
++
++    .delete-btn {
++      background: #f25f5c;
++      border: none;
++      color: #fff;
++      padding: 6px 10px;
++      border-radius: 8px;
++      cursor: pointer;
++      font-size: 12px;
++    }
++
++    .delete-btn:hover {
++      background: #dc4e4b;
++    }
++  </style>
++</head>
++<body>
++  <div class="container">
++    <header>
++      <h1>기부 리포트 대시보드</h1>
++      <p>기부 내역을 기록하고 월별/카테고리별 통계를 바로 확인하세요.</p>
++    </header>
++
++    <section class="card">
++      <h2>기부 내역 입력</h2>
++      <form id="donation-form">
++        <label>
++          날짜
++          <input type="date" id="donation-date" required />
++        </label>
++        <label>
++          금액 (원)
++          <input type="number" id="donation-amount" min="1" step="1" placeholder="0" required />
++        </label>
++        <label>
++          카테고리
++          <select id="donation-category">
++            <option value="교육">교육</option>
++            <option value="의료">의료</option>
++            <option value="환경">환경</option>
++            <option value="동물">동물</option>
++            <option value="긴급구호">긴급구호</option>
++            <option value="기타">기타</option>
++          </select>
++        </label>
++        <label>
++          메모
++          <input type="text" id="donation-memo" placeholder="선택 사항" />
++        </label>
++        <button type="submit">추가하기</button>
++      </form>
++      <div class="helper" id="form-message"></div>
++    </section>
++
++    <section class="grid">
++      <div class="card">
++        <h2>이번 달 합계</h2>
++        <div class="summary">
++          <strong id="monthly-total">0원</strong>
++          <span id="monthly-label" class="badge"></span>
++        </div>
++      </div>
++      <div class="card">
++        <h2>전체 합계</h2>
++        <div class="summary">
++          <strong id="total-amount">0원</strong>
++          <span class="badge" id="total-count">0건</span>
++        </div>
++      </div>
++      <div class="card">
++        <h2>카테고리 합계/비중</h2>
++        <table>
++          <thead>
++            <tr>
++              <th>카테고리</th>
++              <th>합계</th>
++              <th>비중</th>
++            </tr>
++          </thead>
++          <tbody id="category-summary"></tbody>
++        </table>
++      </div>
++    </section>
++
++    <section class="card">
++      <h2>최근 10건</h2>
++      <div class="list" id="recent-list"></div>
++    </section>
++
++    <section class="card">
++      <h2>전체 내역</h2>
++      <table>
++        <thead>
++          <tr>
++            <th>날짜</th>
++            <th>카테고리</th>
++            <th>메모</th>
++            <th>금액</th>
++            <th></th>
++          </tr>
++        </thead>
++        <tbody id="donation-table"></tbody>
++      </table>
++    </section>
++  </div>
++
++  <script>
++    const STORAGE_KEY = "donationEntries";
++
++    const form = document.getElementById("donation-form");
++    const dateInput = document.getElementById("donation-date");
++    const amountInput = document.getElementById("donation-amount");
++    const categoryInput = document.getElementById("donation-category");
++    const memoInput = document.getElementById("donation-memo");
++    const message = document.getElementById("form-message");
++
++    const monthlyTotal = document.getElementById("monthly-total");
++    const monthlyLabel = document.getElementById("monthly-label");
++    const totalAmount = document.getElementById("total-amount");
++    const totalCount = document.getElementById("total-count");
++    const categorySummary = document.getElementById("category-summary");
++    const donationTable = document.getElementById("donation-table");
++    const recentList = document.getElementById("recent-list");
++
++    const currencyFormatter = new Intl.NumberFormat("ko-KR");
++
++    const loadEntries = () => {
++      const raw = localStorage.getItem(STORAGE_KEY);
++      if (!raw) return [];
++      try {
++        return JSON.parse(raw);
++      } catch (error) {
++        console.error("저장된 데이터를 읽을 수 없습니다.", error);
++        return [];
++      }
++    };
++
++    const saveEntries = (entries) => {
++      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
++    };
++
++    const formatCurrency = (value) => `${currencyFormatter.format(value)}원`;
++
++    const getMonthKey = (dateString) => {
++      const date = new Date(dateString);
++      if (Number.isNaN(date.getTime())) return "";
++      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
++    };
++
++    const renderSummary = (entries) => {
++      const now = new Date();
++      const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
++      const monthlySum = entries
++        .filter((entry) => getMonthKey(entry.date) === currentMonthKey)
++        .reduce((sum, entry) => sum + entry.amount, 0);
++
++      monthlyTotal.textContent = formatCurrency(monthlySum);
++      monthlyLabel.textContent = `${currentMonthKey} 기준`;
++
++      const totalSum = entries.reduce((sum, entry) => sum + entry.amount, 0);
++      totalAmount.textContent = formatCurrency(totalSum);
++      totalCount.textContent = `${entries.length}건`;
++
++      const categories = entries.reduce((acc, entry) => {
++        acc[entry.category] = (acc[entry.category] || 0) + entry.amount;
++        return acc;
++      }, {});
++
++      const categoryRows = Object.entries(categories)
++        .sort((a, b) => b[1] - a[1])
++        .map(([category, amount]) => {
++          const ratio = totalSum ? ((amount / totalSum) * 100).toFixed(1) : 0;
++          return `
++            <tr>
++              <td>${category}</td>
++              <td>${formatCurrency(amount)}</td>
++              <td>${ratio}%</td>
++            </tr>
++          `;
++        })
++        .join("");
++
++      categorySummary.innerHTML = categoryRows || `
++        <tr>
++          <td colspan="3" class="empty">아직 기부 내역이 없습니다.</td>
++        </tr>
++      `;
++    };
++
++    const renderTable = (entries) => {
++      const sorted = [...entries].sort((a, b) => new Date(b.date) - new Date(a.date));
++      donationTable.innerHTML = sorted
++        .map((entry) => {
++          return `
++          <tr>
++            <td>${entry.date}</td>
++            <td>${entry.category}</td>
++            <td>${entry.memo || "-"}</td>
++            <td>${formatCurrency(entry.amount)}</td>
++            <td><button class="delete-btn" data-id="${entry.id}">삭제</button></td>
++          </tr>
++        `;
++        })
++        .join("") || `
++        <tr>
++          <td colspan="5" class="empty">저장된 내역이 없습니다.</td>
++        </tr>
++      `;
++    };
++
++    const renderRecent = (entries) => {
++      const sorted = [...entries]
++        .sort((a, b) => new Date(b.date) - new Date(a.date))
++        .slice(0, 10);
++
++      recentList.innerHTML = sorted
++        .map((entry) => {
++          return `
++          <div class="list-item">
++            <div>
++              <strong>${formatCurrency(entry.amount)}</strong>
++              <small> · ${entry.category} · ${entry.date}</small>
++            </div>
++            <small>${entry.memo || "메모 없음"}</small>
++          </div>
++        `;
++        })
++        .join("") || `<p class="empty">최근 내역이 없습니다.</p>`;
++    };
++
++    const render = () => {
++      const entries = loadEntries();
++      renderSummary(entries);
++      renderTable(entries);
++      renderRecent(entries);
++    };
++
++    const resetMessage = () => {
++      message.textContent = "";
++    };
++
++    form.addEventListener("submit", (event) => {
++      event.preventDefault();
++      resetMessage();
++
++      const date = dateInput.value;
++      const amount = Number(amountInput.value);
++      const category = categoryInput.value;
++      const memo = memoInput.value.trim();
++
++      if (!date) {
++        message.textContent = "날짜를 입력해 주세요.";
++        return;
++      }
++
++      if (!amount || amount <= 0) {
++        message.textContent = "금액은 1원 이상의 숫자여야 합니다.";
++        return;
++      }
++
++      const entries = loadEntries();
++      entries.push({
++        id: crypto.randomUUID(),
++        date,
++        amount,
++        category,
++        memo,
++      });
++
++      saveEntries(entries);
++      form.reset();
++      dateInput.focus();
++      render();
++    });
++
++    donationTable.addEventListener("click", (event) => {
++      const target = event.target;
++      if (!(target instanceof HTMLButtonElement)) return;
++      if (!target.dataset.id) return;
++
++      const entries = loadEntries().filter((entry) => entry.id !== target.dataset.id);
++      saveEntries(entries);
++      render();
++    });
++
++    render();
++  </script>
++</body>
++</html>
+ 
+EOF
+)
